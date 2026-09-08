@@ -2,7 +2,13 @@ import { isValidPkrAmount, parsePkrAmount } from './budget.js'
 
 export const STORAGE_KEY = 'pkr-budget-tracker:v1'
 
-const emptyBudget = () => ({ setup: null, transactions: [] })
+const emptyBudget = () => ({ setup: null, transactions: [], dateRange: { start: '', end: '' } })
+
+export function normalizeDateRange(range) {
+  const start = typeof range?.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(range.start) ? range.start : ''
+  const end = typeof range?.end === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(range.end) ? range.end : ''
+  return { start, end }
+}
 
 export function loadBudget(storage = globalThis.localStorage) {
   if (!storage) return null
@@ -18,7 +24,7 @@ export function loadBudget(storage = globalThis.localStorage) {
       setup.bank = parsePkrAmount(setup.bank ?? setup.online) ?? 0
       setup.loans = Array.isArray(setup.loans) ? setup.loans.filter((l) => l && isValidPkrAmount(l.amount)) : []
     }
-    return { setup, transactions }
+    return { setup, transactions, dateRange: normalizeDateRange(value.dateRange) }
   } catch {
     return null
   }
@@ -26,7 +32,7 @@ export function loadBudget(storage = globalThis.localStorage) {
 
 export function saveBudget(budget, storage = globalThis.localStorage) {
   if (!storage) return false
-  const payload = { setup: budget?.setup ?? null, transactions: Array.isArray(budget?.transactions) ? budget.transactions : [] }
+  const payload = { setup: budget?.setup ?? null, transactions: Array.isArray(budget?.transactions) ? budget.transactions : [], dateRange: normalizeDateRange(budget?.dateRange) }
   storage.setItem(STORAGE_KEY, JSON.stringify(payload))
   return true
 }
