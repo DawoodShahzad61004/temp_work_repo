@@ -13,10 +13,15 @@ function TransactionListItem({ transaction, onEdit, onDelete }) {
     return () => cancelAnimationFrame(frame)
   }, [])
 
+  const isIncoming = transaction.type === TRANSACTION_TYPES.INCOME || transaction.type === 'earned'
+
   return <li className={`py-3 transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}>
-    <div className="flex justify-between"><span>{money(transaction.amount)} · {transaction.type === TRANSACTION_TYPES.INCOME || transaction.type === 'earned' ? 'Earned' : 'Used'}</span><time>{localDateTime(transaction.timestamp)}</time></div>
+    <div className="flex flex-wrap items-center justify-between gap-2"><span className={`inline-flex items-center gap-1 font-medium ${isIncoming ? 'text-emerald-700' : 'text-rose-700'}`}><span aria-hidden="true">{isIncoming ? '📈' : '📉'}</span>{money(transaction.amount)} · {isIncoming ? 'Earned' : 'Used'}</span><time className="text-sm text-slate-500">{localDateTime(transaction.timestamp)}</time></div>
     <p>{transaction.source === ACCOUNT_TYPES.BANK ? 'Bank' : 'Cash'}{transaction.reason ? ` · ${transaction.reason}` : ''}</p>
-    <button onClick={() => onEdit(transaction)}>Edit</button> <button onClick={() => onDelete(transaction.id)}>Delete</button>
+    <div className="mt-2 flex flex-wrap gap-2">
+      <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:opacity-95 hover:shadow-md" onClick={() => onEdit(transaction)}>✏️ <span>Edit</span></button>
+      <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white shadow-sm transition-all duration-200 hover:scale-105 hover:bg-red-700 hover:opacity-95 hover:shadow-md" onClick={() => onDelete(transaction.id)}>🗑️ <span>Delete</span></button>
+    </div>
   </li>
 }
 
