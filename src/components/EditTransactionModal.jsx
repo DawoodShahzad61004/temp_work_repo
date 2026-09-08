@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ACCOUNT_TYPES, parsePkrAmount } from '../lib/budget.js'
 
 export default function EditTransactionModal({ transaction, onClose, onSubmit }) {
@@ -13,23 +13,33 @@ export default function EditTransactionModal({ transaction, onClose, onSubmit })
   const [visible, setVisible] = useState(false)
   const [closing, setClosing] = useState(false)
 
+  const timeoutRef = useRef(null)
+  const closingRef = useRef(false)
+
   useEffect(() => {
     const frame = requestAnimationFrame(() => setVisible(true))
     return () => cancelAnimationFrame(frame)
   }, [])
 
   const close = () => {
-    if (closing) return
+    if (closingRef.current) return
+    closingRef.current = true
     setClosing(true)
     setVisible(false)
-    window.setTimeout(onClose, 250)
+    timeoutRef.current = window.setTimeout(onClose, 250)
   }
 
   useEffect(() => {
     const escape = (event) => event.key === 'Escape' && close()
     document.addEventListener('keydown', escape)
     return () => document.removeEventListener('keydown', escape)
-  })
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
 
   const submit = (event) => {
     event.preventDefault()
